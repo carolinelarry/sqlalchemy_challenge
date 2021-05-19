@@ -94,7 +94,7 @@ def tobs():
 
     #If the dates need to not be hardcoded: look at 10, Day 3, 02 activity
 
-    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date < '2016-8-23').filter(Measurement.date >= '2017-8-23').filter_by(station = most_active_id).all()
+    results = session.query(Measurement.date, Measurement.tobs, Measurement.station).filter(Measurement.date < '2016-8-23').filter(Measurement.date >= '2017-8-23').filter_by(station == most_active_id).all()
     session.close()
 
     last_year_temps = list(np.ravel(results))
@@ -118,14 +118,29 @@ def tobs():
    # return jsonify({"error": f"Character with real_name {real_name} not found."}), 404
 #========================================================
 
+
+#OTHER CODDDEEEEE: NOT MINE
+#def toDate(dateString): 
+    #return datetime.datetime.strptime(dateString, "%Y-%m-%d").date()
+ 
+#@app.route()
+#def event():
+ #   ektempo = request.args.get('start', default = datetime.date.today(), type = toDate)
+#END OF CODE: NOT MINE
+
+#STart of my code
 @app.route("/api/v1.0/<start>")
 def start_date(start):
     #how to change the format on a Measurement.station to datetime thing
 
     start = start.strftime("%Y-%m-%d")
 
-    results = session.query(Measurement)
+    results = session.query(Measurement.date, Measurement.tobs, func.min(Measurement.tobs)).filter(Measurement.date >= start).all()
 
+    session.close()
+
+    start_date_temps = list(np.ravel(results))
+    return jsonify(start_date_temps)
 
 if __name__ == "__main__":
     app.run(debug=True)

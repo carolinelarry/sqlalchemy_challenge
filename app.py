@@ -94,13 +94,27 @@ def tobs():
 
     #If the dates need to not be hardcoded: look at 10, Day 3, 02 activity
 
-    results = session.query(Measurement.date, Measurement.tobs, Measurement.station).filter(Measurement.date < '2016-8-23').filter(Measurement.date >= '2017-8-23').filter_by(station == most_active_id).all()
+    #Below is query with most_acitve_id filter
+    #results = session.query(Measurement.date, Measurement.tobs, Measurement.station).filter(Measurement.station = most_active_id).filter(Measurement.date < '2016-8-23').filter(Measurement.date >= '2017-8-23').all()
+    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
     session.close()
 
-    last_year_temps = list(np.ravel(results))
+    tobs_list = []
+    for date,tobs in results:
+        tobs_dict = {}
+        tobs_dict["date"] = date
+        tobs_dict["tobs"] = tobs
+        tobs_list.append(tobs_dict)
 
-    return jsonify(last_year_temps)
+    #last_year_temps = list(np.ravel(results))
 
+    return jsonify(tobs_list)
+
+
+
+
+
+#ALL CODE BELOW IS FOR START
 #Copied code here
 #========================================================
 #@app.route("/api/v1.0/justice-league/<real_name>")
@@ -128,19 +142,44 @@ def tobs():
  #   ektempo = request.args.get('start', default = datetime.date.today(), type = toDate)
 #END OF CODE: NOT MINE
 
-#STart of my code
-@app.route("/api/v1.0/<start>")
-def start_date(start):
+#STart of my code: old code
+#@app.route("/api/v1.0/<start>")
+#def start_date(start):
     #how to change the format on a Measurement.station to datetime thing
 
-    start = start.strftime("%Y-%m-%d")
+ #   start = start.strftime("%Y-%m-%d")
 
-    results = session.query(Measurement.date, Measurement.tobs, func.min(Measurement.tobs)).filter(Measurement.date >= start).all()
+  #  results = session.query(Measurement.date, Measurement.tobs, func.min(Measurement.tobs)).filter(Measurement.date >= start).all()
+
+   # session.close()
+
+    #start_date_temps = list(np.ravel(results))
+    #return jsonify(start_date_temps)
+
+#end of my old code
+
+#New route
+@app.route("/api/v1.0/<start>")
+def start_date(start):
+    #Converting input to standard format
+    converted_start_date = start.strftime("%Y-%m-%d")
+
+    results = session.query(Measurement.date, Measurement.tobs).all()
 
     session.close()
 
-    start_date_temps = list(np.ravel(results))
-    return jsonify(start_date_temps)
+    start_tobs_date = []
+    for date, tobs in results:
+        new_date = ["date"].strftime("%Y-%m-%d")
+
+        if converted_start_date == new_date:
+            start_tobs_date_dict = {}
+            start_tobs_date_dict["date"] = date
+            start_tobs_date_dict["tobs"] = tobs
+            start_tobs_date.append(start_tobs_date_dict)
+
+        return jsonify(start_tobs_date)
 
 if __name__ == "__main__":
     app.run(debug=True)
+

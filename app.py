@@ -9,25 +9,21 @@ import datetime as dt
 
 from flask import Flask, jsonify
 
-
-#################################################
-# Database Setup
-#################################################
+#Creating our engine
 engine = create_engine("sqlite:///../../../working/10-Advanced-Data-Storage-and-Retrieval/Homework/Instructions/Resources/hawaii.sqlite")
 
-# reflect an existing database into a new model
+#Reflecting existing database into a new model
 Base = automap_base()
-# reflect the tables
 Base.prepare(engine, reflect=True)
 
-# Save reference to the table
+#Save references to the tables
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
 
 app = Flask(__name__)
 
-
+#Home route
 @app.route("/")
 def welcome():
     return (
@@ -35,18 +31,21 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
+        f"/api/v1.0/%3Cstart%3E<br/>"
+        f"/api/v1.0/<start>/<end>"
     )
 
+#Precipitation route
 @app.route("/api/v1.0/precipitation")
 def precipitation():
 
     session = Session(engine)
 
-    #Select date and prcp from Measurement
+    #Selecting date and prcp from Measurement
     date_prcp = session.query(Measurement.date, Measurement.prcp).all()
-    
     session.close()
 
+    #Adding our dates and prcp values to a list
     prcp_list = []
     for date, prcp in date_prcp:
         prcp_dict = {}
@@ -54,53 +53,37 @@ def precipitation():
         prcp_dict["prcp"] = prcp
         prcp_list.append(prcp_dict)
 
+    #Returning the complete list
     return jsonify(prcp_list)
 
+#Stations route
 @app.route("/api/v1.0/stations")
 def stations():
+
     session = Session(engine)
 
-    """Return a list of all passenger names"""
-    # Query all passengers
-
-    #Select name from Passenger
+    #Select station id from Station
     results = session.query(Station.station).all()
-
     session.close()
 
     # Convert list of tuples into normal list
     station_names = list(np.ravel(results))
 
+    #Return the list
     return jsonify(station_names)
 
+#Tobs route
 @app.route("/api/v1.0/tobs")
 def tobs():
     session = Session(engine)
 
-    #results = session.query(Station.station).all()
-    #stations = session.query(Measurement.station, func.count(Measurement.station)).group_by(Measurement.station).order_by(func.count(Measurement.station).desc()).all()
-
     most_active_id = "USC00519281"
 
-    #Changing date column to a datetime column
-    #measurement_df['date'] = pd.to_datetime(measurement_df['date'])
-
-    #Finding our most recent date
-    #start_date = measurement_df['date'].max()
-    #end_date = start_date - dt.timedelta(days=365)
-
-    #start_date = start_date.strftime("%Y-%m-%d")
-    #end_date = end_date.strftime("%Y-%m-%d")
-
-
-    #If the dates need to not be hardcoded: look at 10, Day 3, 02 activity
-
-    #Below is query with most_acitve_id filter
+    #Query for date and temp for most active id for the last year of data
     results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == most_active_id).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
-    #results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
-    #results = session.query(Measurement.date, Measurement.station).filter(Measurement.station == most_active_id)
     session.close()
 
+    #Adding date and tobs values to list
     tobs_list = []
     for date,tobs in results:
         tobs_dict = {}
@@ -108,83 +91,46 @@ def tobs():
         tobs_dict["tobs"] = tobs
         tobs_list.append(tobs_dict)
 
-    #last_year_temps = list(np.ravel(results))
+    #Returning list
     return jsonify(tobs_list)
 
-
-
-
-
-#ALL CODE BELOW IS FOR START
-#Copied code here
-#========================================================
-#@app.route("/api/v1.0/justice-league/<real_name>")
-#def justice_league_character(real_name):
-#    """Fetch the Justice League character whose real_name matches
-#       the path variable supplied by the user, or a 404 if not."""
-
-#    canonicalized = real_name.replace(" ", "").lower()
- #   for character in justice_league_members:
- #       search_term = character["real_name"].replace(" ", "").lower()
-
-  #      if search_term == canonicalized:
-  #          return jsonify(character)
-
-   # return jsonify({"error": f"Character with real_name {real_name} not found."}), 404
-#========================================================
-
-
-#OTHER CODDDEEEEE: NOT MINE
-#def toDate(dateString): 
-    #return datetime.datetime.strptime(dateString, "%Y-%m-%d").date()
- 
-#@app.route()
-#def event():
- #   ektempo = request.args.get('start', default = datetime.date.today(), type = toDate)
-#END OF CODE: NOT MINE
-
-#STart of my code: old code
-#@app.route("/api/v1.0/<start>")
-#def start_date(start):
-    #how to change the format on a Measurement.station to datetime thing
-
- #   start = start.strftime("%Y-%m-%d")
-
-  #  results = session.query(Measurement.date, Measurement.tobs, func.min(Measurement.tobs)).filter(Measurement.date >= start).all()
-
-   # session.close()
-
-    #start_date_temps = list(np.ravel(results))
-    #return jsonify(start_date_temps)
-
-#end of my old code
-
-#New route
+#Route with start date
 @app.route("/api/v1.0/<start>")
 def start_date(start):
 
     session = Session(engine)
-    #Converting input to standard format
-    #converted_start_date = start.strftime("%Y-%m-%d")
 
-    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date >= start).all()
-    #results = session.query(Measurement.tobs).filter(Measurement.date >= start).all()
+    #Creating function to get min, avg, and max for tobs values in Measurement
+    funcs = [func.min(Measurement.tobs),func.avg(Measurement.tobs), func.max(Measurement.tobs)]
+
+    #Using these functions for dates greater than or equal to start date
+    results = session.query(*funcs).filter(Measurement.date >= start).all()
     session.close()
 
+    #Converting list of tuples into normal list
+    temps = list(np.ravel(results))
 
-    start_tobs_date = []
-    for date, tobs in results:
-       # new_date = ["date"]#.strftime("%Y-%m-%d")
-        #if converted_start_date == new_date:
-        start_tobs_date_dict = {}
-        start_tobs_date_dict["date"] = date
-        start_tobs_date_dict["tobs"] = tobs
-        start_tobs_date.append(start_tobs_date_dict)
-        #int(start_tobs_date_dict["tobs"])
+    #Returning list
+    return jsonify(temps)
 
-    min = stats.tmin(start_tobs_date["tobs"])
-    return(min)
-    #return jsonify(start_tobs_date)
+#Route with start date and end date
+@app.route("/api/v1.0/<start>/<end>")
+def start_end_date(start, end):
+
+    session = Session(engine)
+
+    #Creating function to get min, avg, and max for tobs values in Measurement
+    funcs = [func.min(Measurement.tobs),func.avg(Measurement.tobs), func.max(Measurement.tobs)]
+
+    #Using these functions for dates between start and end date inclusive
+    results = session.query(*funcs).filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+    session.close()
+
+    #Converting list of tuples into normal list
+    temps = list(np.ravel(results))
+
+    #Returning list
+    return jsonify(temps)
 
 if __name__ == "__main__":
     app.run(debug=True)

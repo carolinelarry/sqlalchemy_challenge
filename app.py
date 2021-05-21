@@ -95,8 +95,9 @@ def tobs():
     #If the dates need to not be hardcoded: look at 10, Day 3, 02 activity
 
     #Below is query with most_acitve_id filter
-    #results = session.query(Measurement.date, Measurement.tobs, Measurement.station).filter(Measurement.station = most_active_id).filter(Measurement.date < '2016-8-23').filter(Measurement.date >= '2017-8-23').all()
-    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
+    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == most_active_id).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
+    #results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
+    #results = session.query(Measurement.date, Measurement.station).filter(Measurement.station == most_active_id)
     session.close()
 
     tobs_list = []
@@ -161,24 +162,26 @@ def tobs():
 #New route
 @app.route("/api/v1.0/<start>")
 def start_date(start):
-    #Converting input to standard format
-    converted_start_date = start.strftime("%Y-%m-%d")
 
-    results = session.query(Measurement.date, Measurement.tobs).all()
+    session = Session(engine)
+    #Converting input to standard format
+    #converted_start_date = start#.strftime("%Y-%m-%d")
+
+    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date >= start).all()
 
     session.close()
 
     start_tobs_date = []
     for date, tobs in results:
-        new_date = ["date"].strftime("%Y-%m-%d")
+       # new_date = ["date"]#.strftime("%Y-%m-%d")
 
-        if converted_start_date == new_date:
-            start_tobs_date_dict = {}
-            start_tobs_date_dict["date"] = date
-            start_tobs_date_dict["tobs"] = tobs
-            start_tobs_date.append(start_tobs_date_dict)
+        #if converted_start_date == new_date:
+        start_tobs_date_dict = {}
+        start_tobs_date_dict["date"] = date
+        start_tobs_date_dict["tobs"] = tobs
+        start_tobs_date.append(start_tobs_date_dict)
 
-        return jsonify(start_tobs_date)
+    return jsonify(start_tobs_date)
 
 if __name__ == "__main__":
     app.run(debug=True)

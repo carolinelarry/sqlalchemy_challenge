@@ -1,3 +1,4 @@
+from scipy import stats
 import numpy as np
 
 import sqlalchemy
@@ -108,7 +109,6 @@ def tobs():
         tobs_list.append(tobs_dict)
 
     #last_year_temps = list(np.ravel(results))
-
     return jsonify(tobs_list)
 
 
@@ -165,23 +165,26 @@ def start_date(start):
 
     session = Session(engine)
     #Converting input to standard format
-    #converted_start_date = start#.strftime("%Y-%m-%d")
+    #converted_start_date = start.strftime("%Y-%m-%d")
 
     results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date >= start).all()
-
+    #results = session.query(Measurement.tobs).filter(Measurement.date >= start).all()
     session.close()
+
 
     start_tobs_date = []
     for date, tobs in results:
        # new_date = ["date"]#.strftime("%Y-%m-%d")
-
         #if converted_start_date == new_date:
         start_tobs_date_dict = {}
         start_tobs_date_dict["date"] = date
         start_tobs_date_dict["tobs"] = tobs
         start_tobs_date.append(start_tobs_date_dict)
+        #int(start_tobs_date_dict["tobs"])
 
-    return jsonify(start_tobs_date)
+    min = stats.tmin(start_tobs_date["tobs"])
+    return(min)
+    #return jsonify(start_tobs_date)
 
 if __name__ == "__main__":
     app.run(debug=True)

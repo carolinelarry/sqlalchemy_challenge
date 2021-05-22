@@ -1,2 +1,1 @@
-# sqlalchemy_hw
-Homework 8, sqlalchemy
+This is the SQLAlchemy homework. 

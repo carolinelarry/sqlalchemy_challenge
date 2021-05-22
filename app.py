@@ -41,19 +41,20 @@ def precipitation():
 
     session = Session(engine)
 
-    #Selecting date and prcp from Measurement
-    date_prcp = session.query(Measurement.date, Measurement.prcp).all()
+    #Selecting date and prcp from Measurement for prcp values for the last year of data
+    date_prcp = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date > '2016-08-23').filter(Measurement.date <= '2017-08-23').all()
     session.close()
 
     #Adding our dates and prcp values to a list
     prcp_list = []
-    for date, prcp in date_prcp:
-        prcp_dict = {}
-        prcp_dict["date"] = date
-        prcp_dict["prcp"] = prcp
-        prcp_list.append(prcp_dict)
 
-    #Returning the complete list
+    for date, prcp in date_prcp:
+        #Adding data to a dictionary with date as the key and prcp as the value
+        precip = {date: prcp}
+        #Adding dictionaries to our list
+        prcp_list.append(precip)
+
+    #Returning the complete, jsonified list
     return jsonify(prcp_list)
 
 #Stations route
@@ -80,7 +81,7 @@ def tobs():
     most_active_id = "USC00519281"
 
     #Query for date and temp for most active id for the last year of data
-    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == most_active_id).filter(Measurement.date > '2016-8-23').filter(Measurement.date <= '2017-8-23').all()
+    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == most_active_id).filter(Measurement.date >= '2016-08-23').filter(Measurement.date <= '2017-08-23').all()
     session.close()
 
     #Adding date and tobs values to list

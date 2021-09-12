@@ -67,6 +67,10 @@ Next I design a Flask API based on the queries that you have just developed.
 
   * Returned the JSON representation of your dictionary.
 
+
+<img width="276" alt="Screen Shot 2021-09-12 at 8 58 26 AM" src="https://user-images.githubusercontent.com/79863465/132990524-c9594cd9-196d-46ab-8e71-5e56985d23cd.png">
+
+
 * `/api/v1.0/stations`
 
   * Returned a JSON list of stations from the dataset.

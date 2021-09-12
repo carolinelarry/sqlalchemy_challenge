@@ -66,6 +66,7 @@ Next I design a Flask API based on the queries that you have just developed.
   * Converted the query results to a dictionary using `date` as the key and `prcp` as the value.
 
   * Returned the JSON representation of your dictionary.
+  
 
 
 <img width="276" alt="Screen Shot 2021-09-12 at 8 58 26 AM" src="https://user-images.githubusercontent.com/79863465/132990524-c9594cd9-196d-46ab-8e71-5e56985d23cd.png">
